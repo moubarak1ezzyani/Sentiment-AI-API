@@ -1,124 +1,95 @@
-# 🧠 Sentiment Analysis API (Backend)
+# 🧠 Sentiment-AI-API
 
-Microservice backend performant développé avec **FastAPI**. Ce service expose une API REST sécurisée permettant d'analyser le sentiment d'un texte en utilisant le modèle d'IA `nlptown/bert-base-multilingual-uncased-sentiment` via l'API d'inférence de Hugging Face.
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/Framework-FastAPI-009688)
+![Hugging Face](https://img.shields.io/badge/AI-BERT%20Model-yellow)
+![Security](https://img.shields.io/badge/Auth-JWT-red)
 
-Ce projet assure l'authentification, la gestion des erreurs et la transformation des scores de l'IA.
+## 🔗 Lien vers le Frontend
+Ce backend fonctionne de pair avec l'interface utilisateur disponible ici :  
+👉 **[Sentiment-SaaS-Dashboard](https://github.com/moubarak1ezzyani/Application-d-Analyse-de-Sentiment---Front-End.git)**
 
+## 📄 Contexte
+Ce microservice est le moteur d'intelligence de notre SaaS d'analyse de sentiment. Il sécurise l'accès aux ressources IA via des tokens JWT et fait l'intermédiaire avec l'API d'inférence de **Hugging Face**.
 
+Le modèle utilisé est `nlptown/bert-base-multilingual-uncased-sentiment`, capable de noter un texte de 1 à 5 étoiles (multilingue).
 
-## ⚡ Fonctionnalités
+## ⚙️ Architecture Technique
+1. **Sécurité** : Validation des tokens JWT via `PyJWT` et `HTTPBearer`.
+2. **API Gateway** : FastAPI gère les requêtes REST et les CORS (pour autoriser le frontend).
+3. **IA Externe** : Les textes sont envoyés à Hugging Face, et la réponse est normalisée avant d'être renvoyée au client.
 
-* **API REST Rapide :** Basée sur FastAPI et Uvicorn.
-* **Sécurité JWT :** Système d'authentification complet (Login + Protection des routes).
-* **Intégration IA :** Connexion asynchrone à l'API Hugging Face.
-* **Documentation Interactive :** Swagger UI et Redoc intégrés automatiquement.
-* **Logique Métier :** Conversion des scores "étoiles" (1-5) en sentiments (Négatif/Neutre/Positif).
-* **Docker Ready :** Conteneurisation complète pour un déploiement facile.
-
-
-## 🛠️ Stack Technique
-
-* **Langage :** Python 3.11+
-* **Framework :** FastAPI
-* **Sécurité :** PyJWT (JSON Web Tokens)
-* **Client HTTP :** Requests
-* **Serveur :** Uvicorn
-* **Gestion d'env :** Python-dotenv
-
-
-## ⚙️ Installation et Configuration
-
-### 1. Cloner le projet
+## 📂 Structure du Projet
 ```bash
-git clone [https://github.com/VOTRE-USERNAME/NOM-DU-REPO-BACKEND.git](https://github.com/VOTRE-USERNAME/NOM-DU-REPO-BACKEND.git)
-cd NOM-DU-REPO-BACKEND
-````
+├── backend_main.py      # Point d'entrée de l'API (Routes & Logique)
+├── Test_File.py         # Script de vérification des modules
+├── requirements.txt     # Dépendances (fastapi, pyjwt, requests...)
+└── .env                 # Variables d'environnement (Clés API, Secrets)
 
-### 2\. Variables d'environnement (Critique)
-
-Créez un fichier `.env` à la racine du projet. **Ce fichier ne doit pas être commité.**
-
-```ini
-# .env
-# Votre clé API Hugging Face ([https://huggingface.co/settings/tokens](https://huggingface.co/settings/tokens))
-HF_API_TOKEN="hf_xxxxxxxxxxxxxxxxxxxxxxxx"
-
-# Clé secrète pour signer les tokens JWT (générez une chaîne aléatoire)
-JWT_SECRET="votre_super_secret_key_change_me"
-
-# (Optionnel) URL du modèle si vous souhaitez le changer
-HF_API_URL="[https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment](https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment)"
 ```
 
-### 3\. Installation locale (Sans Docker)
+## 🚀 Installation et Lancement
 
-Créez un environnement virtuel et installez les dépendances :
+### 1. Pré-requis
+
+Cloner le dépôt et installer les dépendances :
 
 ```bash
-python -m venv venv
-# Windows :
-.\venv\Scripts\activate
-# Mac/Linux :
-source venv/bin/activate
-
 pip install -r requirements.txt
+
 ```
 
-Lancez le serveur :
+### 2. Configuration (.env)
+
+Créez un fichier `.env` à la racine :
+
+```env
+HF_TOKEN=votre_token_hugging_face_ici
+API_URL_env=[https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment](https://api-inference.huggingface.co/models/nlptown/bert-base-multilingual-uncased-sentiment)
+JWT_SECRET_env=votre_secret_tres_complique
+algo_env=HS256
+
+```
+
+### 3. Démarrer le Serveur
 
 ```bash
-uvicorn main:app --reload
+uvicorn backend_main:app --reload
+
 ```
 
-L'API sera accessible sur : `http://localhost:8000`
+L'API sera accessible sur `http://127.0.0.1:8000`.
 
+## 📡 Documentation API
 
+### 🔐 Authentification (`POST /login`)
 
-## 🐳 Démarrage avec Docker
+Permet de récupérer un token d'accès.
 
-Pour lancer le backend dans un conteneur isolé :
+* **Body** : `{"username": "admin", "password": "password"}`
+* **Response** : `{"token": "eyJhbGciOiJIUzI1..."}`
+
+### 🧠 Prédiction (`POST /predict`)
+
+*Route protégée (Header: Authorization: Bearer <token>)*
+
+* **Body** : `{"text": "J'adore ce service, c'est génial !"}`
+* **Response** :
+
+```json
+{
+  "sentiment": "5 stars",
+  "score": 0.95
+}
+
+```
+
+## ✅ Tests
+
+Un script est inclus pour vérifier que tous les modules sont bien chargés :
 
 ```bash
-# 1. Construire l'image
-docker build -t sentiment-backend .
+python Test_File.py
 
-# 2. Lancer le conteneur (en chargeant le fichier .env)
-docker run -p 8000:8000 --env-file .env sentiment-backend
 ```
 
-
-## 📖 Documentation de l'API (Endpoints)
-
-Une fois le serveur lancé, accédez à la documentation interactive complète sur `http://localhost:8000/docs`.
-
-### Résumé des routes :
-
-| Méthode | Endpoint | Accès | Description |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/login` | Public | Prend `{username, password}` et retourne un `access_token`. |
-| `POST` | `/predict` | **Privé** | Prend `{text}`. Nécessite un header `Authorization: Bearer <TOKEN>`. |
-| `GET` | `/` | Public | Health check (vérification que l'API tourne). |
-
-
-## 🧪 Tests
-
-Des tests unitaires sont disponibles (si implémentés avec pytest) :
-
-```bash
-pytest
-```
-
-## 🤝 Contribution
-
-Les contributions sont bienvenues. Merci d'ouvrir une issue pour discuter des changements majeurs.
-
-### 📝 Descriptions pour vos dépôts GitHub
-
-Voici les textes courts à copier-coller dans la section **"About"** (la petite description à droite sur la page d'accueil de chaque dépôt GitHub).
-
-#### Pour le Repo **FRONTEND** :
-> Interface utilisateur réactive développée avec **Next.js** et **Tailwind CSS**. Elle permet l'authentification utilisateur et la visualisation en temps réel des analyses de sentiment via une consommation sécurisée de l'API Backend.
-
-#### Pour le Repo **BACKEND** :
-> Microservice API robuste construit avec **FastAPI** et **Docker**. Il gère l'authentification **JWT** et orchestre l'analyse de sentiment en connectant le modèle **Hugging Face BERT** au frontend.
-```

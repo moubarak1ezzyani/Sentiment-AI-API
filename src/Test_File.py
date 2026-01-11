@@ -1,4 +1,11 @@
-import os
-API_URL_x = os.getenv("API")
+import importlib
 
-# load_dotenv()
+modules = ["os", "requests", "jwt", "dotenv", "fastapi", "pydantic"]
+
+for m in modules:
+    try:
+        importlib.import_module(m)
+        print(f"{m} ✅ trouvé")
+    except ImportError:
+        print(f"{m} ❌ manquant")
+        
