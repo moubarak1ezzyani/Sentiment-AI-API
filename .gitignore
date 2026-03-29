@@ -1,3 +1,4 @@
 Test_File.py
 *.env
 venv/
+__pycache__
